@@ -70,7 +70,7 @@ Open your browser at [localhost:5173](http://localhost:5173/)
 
 ### Usage
 
-One of the most common use cases that we try out in the application is triggering an incoming call, accepting it and after the call is complete, end it, and complete the task. 
+One of the most common use cases that we try out in the application is triggering an incoming call, accepting it and after the call is complete, end it, and complete the task.
 
 -   You can trigger an incoming call using the [twilio-dev-phone](https://www.twilio.com/docs/labs/dev-phone)
 -   Accept the call
