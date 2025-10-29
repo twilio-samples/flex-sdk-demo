@@ -48,7 +48,7 @@ In order to run the application follow this guideline
 Start with cloning this repo on your local machine:
 
 ```sh
-$ git clone https://github.com/twilio/flex-sdk-demo.git
+$ git clone https://github.com/twilio-samples/flex-sdk-demo.git
 $ cd flex-sdk-demo
 ```
 
