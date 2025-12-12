@@ -1,7 +1,7 @@
 import { Theme } from "@twilio-paste/theme";
 import { BrowserRouter, Switch, Route } from "react-router-dom";
 import Login from "./Login";
-import { AgentDesktopWrapper } from "./AgentDesktopWrapper";
+import { AppWrapper } from "./AppWrapper";
 
 function Navigation() {
     return (
@@ -9,7 +9,7 @@ function Navigation() {
             <BrowserRouter>
                 <Switch>
                     <Route path="/" exact component={Login} />
-                    <Route path="/agentDesktop" component={AgentDesktopWrapper} />
+                    <Route path="/agentDesktop" component={AppWrapper} />
                 </Switch>
             </BrowserRouter>
         </Theme.Provider>
