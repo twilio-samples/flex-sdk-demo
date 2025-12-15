@@ -18,6 +18,12 @@ interface MainLayoutProps {
 
 export function MainLayout({ sdkClient, worker, activeView, onViewChange, children }: MainLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    
+    // Check if user has supervisor or admin role
+    const isSupervisor = worker?.attributes?.roles?.includes('supervisor') || 
+                         worker?.attributes?.roles?.includes('admin') ||
+                         worker?.attributes?.role === 'supervisor' ||
+                         worker?.attributes?.role === 'admin';
 
     return (
         <Box display="flex" flexDirection="column" height="100vh">
@@ -42,14 +48,16 @@ export function MainLayout({ sdkClient, worker, activeView, onViewChange, childr
                             {sidebarOpen && "Agent"}
                         </Button>
                         
-                        <Button
-                            variant={activeView === "supervisor" ? "primary" : "secondary"}
-                            onClick={() => onViewChange("supervisor")}
-                            fullWidth={sidebarOpen}
-                        >
-                            <ProductAdminUsersIcon decorative />
-                            {sidebarOpen && "Supervisor"}
-                        </Button>
+                        {isSupervisor && (
+                            <Button
+                                variant={activeView === "supervisor" ? "primary" : "secondary"}
+                                onClick={() => onViewChange("supervisor")}
+                                fullWidth={sidebarOpen}
+                            >
+                                <ProductAdminUsersIcon decorative />
+                                {sidebarOpen && "Supervisor"}
+                            </Button>
+                        )}
                     </Stack>
 
                     <Box marginTop="auto" paddingTop="space60">

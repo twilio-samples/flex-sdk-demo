@@ -3,59 +3,101 @@ import { Box, Text, Table, THead, Tr, Th, TBody, Td, Heading, Card, Spinner } fr
 import { Client } from "@twilio/flex-sdk";
 import { Worker } from "@twilio/flex-sdk/taskrouter";
 import { useEffect } from "react";
-import { useWorkersInfo } from "../hooks/useWorkersInfo";
 import { useSyncClient } from "../hooks/useSyncClient";
-import { useWorkerTasks } from "../hooks/useWorkerTasks";
+import { useWorkerTasks, WorkerWithTasks, LiveReservation } from "../hooks/useWorkerTasks";
+import { SupervisorCallCard } from "../components/supervisor/SupervisorCallCard";
+import { AgentCard } from "../components/supervisor/AgentCard";
+import { SupervisorMessageCard } from "../components/supervisor/SupervisorMessageCard";
+import { SupervisorSideModal } from "../components/supervisor/SupervisorSideModal";
 
 interface Props {
     sdkClient: Client;
-    worker: Worker | null | undefined;
+    worker?: Worker | null | undefined;
 }
 
-export function SupervisorView({ sdkClient }: Props) {
-    const { workers: workersInfo, refetchWorkers } = useWorkersInfo(sdkClient);
+export function SupervisorView({ sdkClient, worker }: Props) {
     const { syncClient, isReady } = useSyncClient(sdkClient);
-    const { workers, reservations, loading } = useWorkerTasks(syncClient, isReady);
+    const { workers } = useWorkerTasks(syncClient, isReady);
+    const [selectedItem, setSelectedItem] = useState<{ type: 'agent' | 'call' | 'message', sid: string } | null>(null);
+    const [modalItem, setModalItem] = useState<{ type: 'agent', sid: string, obj: WorkerWithTasks } | { type: 'call' | 'message', sid: string, obj: LiveReservation } | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const onSelectedItem = (item: { type: 'agent', sid: string, obj: WorkerWithTasks } | { type: 'call' | 'message', sid: string, obj: LiveReservation }) => {
+        setSelectedItem({ type: item.type, sid: item.sid });
+        setModalItem(item);
+        setIsModalOpen(true);
+        console.log("Item selected:", item);
+        // Add your custom logic here
+    };
 
     useEffect(() => {
-        refetchWorkers();
-    }, []);
+        console.log("Workers updated:", workers);
+    }, [workers]);
 
     return (
         <Box padding="space100" backgroundColor="colorBackgroundBody" height="100%" overflow="auto">
-            {/* Workers Overview */}
             <Box marginBottom="space100">
                 <Heading as="h2" variant="heading20" marginBottom="space0">
                     Workers Overview
                 </Heading>
-                <Table>
+                <Table tableLayout="fixed">
                     <THead>
                         <Tr>
-                            <Th>Agent</Th>
-                            <Th>Calls</Th>
-                            <Th>Messages</Th>
+                            <Th width="20%">Agent</Th>
+                            <Th width="40%">Calls</Th>
+                            <Th width="40%">Messages</Th>
                         </Tr>
                     </THead>
                     <TBody>
-                        {Array.from(workers.values()).map((agent) => (
-                            <Tr key={agent.worker_sid}>
+                        {Object.values(workers).map((agent) => {
+                            const voiceTaks = agent.reservations?.filter((r) => r.task_channel_unique_name === "voice") || [];
+                            const chatTaks = agent.reservations?.filter((r) => r.task_channel_unique_name != "voice") || [];
+                            return <Tr key={agent.worker_sid}>
                                 <Td>
-                                    <Text as="p">{agent.attributes.full_name}</Text>
-                                    <Text as="p" color="colorTextWeak">{agent.activity_name}</Text>
+                                    <AgentCard 
+                                        client={sdkClient} 
+                                        agent={agent} 
+                                        isSelected={selectedItem?.type === 'agent' && selectedItem?.sid === agent.worker_sid}
+                                        onSelect={() => onSelectedItem({ type: 'agent', sid: agent.worker_sid, obj: agent })}
+                                    />
                                 </Td>
                                 <Td>
-                                    <Text as="p">{0}</Text>
+                                    {voiceTaks.length === 0 && <SupervisorCallCard client={sdkClient} />}
+                                    {voiceTaks?.map((r) => (
+                                        <SupervisorCallCard 
+                                            key={r.reservation_sid} 
+                                            client={sdkClient} 
+                                            reservation={r}
+                                            isSelected={selectedItem?.type === 'call' && selectedItem?.sid === r.reservation_sid}
+                                            onSelect={() => onSelectedItem({ type: 'call', sid: r.reservation_sid, obj: r })}
+                                        />
+                                    ))}
                                 </Td>
                                 <Td>
-                                    <Text as="p">{0}</Text>
+                                    {chatTaks.length === 0 && <SupervisorMessageCard client={sdkClient} />}
+                                    {chatTaks?.map((r) => (
+                                        <SupervisorMessageCard 
+                                            key={r.reservation_sid} 
+                                            client={sdkClient} 
+                                            reservation={r}
+                                            isSelected={selectedItem?.type === 'message' && selectedItem?.sid === r.reservation_sid}
+                                            onSelect={() => onSelectedItem({ type: 'message', sid: r.reservation_sid, obj: r })}
+                                        />
+                                    ))}
                                 </Td>
                             </Tr>
-                        ))}
+                        })}
                     </TBody>
                 </Table>
             </Box>
 
-         
+            <SupervisorSideModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                item={modalItem}
+                client={sdkClient}
+                worker={worker}
+            />
         </Box>
     );
 }
