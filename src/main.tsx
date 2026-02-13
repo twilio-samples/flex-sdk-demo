@@ -1,11 +1,5 @@
-import * as ReactDOM from "react-dom";
-import { Theme, ThemeVariants } from "@twilio-paste/theme";
-import Navigation from "./Navigation.tsx";
-import "./App.css";
+import { createClient } from "@twilio/flex-sdk";
 
-ReactDOM.render(
-    <Theme.Provider theme={ThemeVariants.FLEX}>
-        <Navigation />
-    </Theme.Provider>,
-    document.getElementById("root")
-);
+createClient("your_token_here").then((client) => {
+    console.log("Twilio Flex SDK Client initialized:", client);
+});

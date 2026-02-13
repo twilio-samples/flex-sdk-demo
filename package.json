@@ -6,27 +6,18 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",
+        "build:no-tree-shake": "tsc -b && vite build --config vite.no-treeshake.config.ts",
         "lint": "eslint .",
         "preview": "vite preview",
-        "prettier:fix": "prettier --write ."
+        "prettier:fix": "prettier --write .",
+        "build:webpack": "webpack --config webpack.config.js",
+        "build:webpack:no-tree-shake": "webpack --config webpack.no-treeshake.config.js"
     },
     "dependencies": {
-        "@twilio-paste/core": "^15.3.1",
-        "@twilio-paste/icons": "^9.2.0",
-        "@twilio-paste/theme": "^8.1.0",
-        "@twilio/flex-sdk": "^0.99.47-dev",
-        "date-fns": "^4.1.0",
-        "react": "^17.0.2",
-        "react-dom": "^17.0.2",
-        "react-router-dom": "^5.3.3",
-        "react-simple-wysiwyg": "^3.2.2",
-        "zustand": "^4.5.4"
+        "@twilio/flex-sdk": "^3.0.0"
     },
     "devDependencies": {
         "@eslint/js": "^9.21.0",
-        "@types/react": "^17.0.2",
-        "@types/react-dom": "^17.0.2",
-        "@types/react-router-dom": "^5.3.3",
         "@vitejs/plugin-react": "^4.3.4",
         "eslint": "^9.21.0",
         "eslint-config-prettier": "^10.1.8",
@@ -34,9 +25,14 @@
         "eslint-plugin-react-hooks": "^5.1.0",
         "eslint-plugin-react-refresh": "^0.4.19",
         "globals": "^15.15.0",
+        "html-webpack-plugin": "^5.6.6",
         "prettier": "^3.6.2",
+        "ts-loader": "^9.5.4",
         "typescript": "~5.7.2",
         "typescript-eslint": "^8.24.1",
-        "vite": "^6.2.7"
+        "vite": "^6.2.7",
+        "webpack": "^5.105.2",
+        "webpack-cli": "^6.0.1",
+        "webpack-dev-server": "^5.2.3"
     }
 }

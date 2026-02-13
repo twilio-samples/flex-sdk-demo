@@ -1,77 +1,68 @@
-# Flex SDK Demo
+# Tree Shaking Bundle Size Comparison
 
-## Why
+Comparison of bundle sizes for `@twilio/flex-sdk@3.0.0` with tree shaking enabled vs disabled across Vite and Webpack bundlers.
 
-This is a sample app to demonstrate the use of Flex SDK to build standalone apps with the framework of your choice. It uses APIs and [EventListeners](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/Events) to manage the user session and listen for incoming events.
+## 1. Vite (Tree Shaking Enabled)
 
-Some prerequisites to run this application are as follows:
+**Build command:** `npm run build`
+**Output directory:** `dist-vite/`
 
--   You should have a Twilio Flex account
--   You have a verified Phone number for your Flex instance
--   Your Studio Flow is correctly configured with your Flex instance
--   Your Flex account is correctly configured with Enhanced SSO or you have a service capable of provisioning a user authentication token
+| File | Size | Gzip |
+|------|------|------|
+| index-DJt-wiA0.js | 698.78 kB | 209.12 kB |
+| index-DZUnjs4r.js | 311.59 kB | 78.70 kB |
+| startRecording-NNPjxF08.js | 21.14 kB | 8.10 kB |
+| profiler-BY_2kXHo.js | 5.69 kB | 2.62 kB |
+| index.html | 0.42 kB | 0.28 kB |
+| **Total** | **1,037.62 kB** | **298.82 kB** |
 
--   [Flex SDK Demo](#flex-sdk-demo)
-    -   [Why](#why)
-    -   [SSO setup](#sso-setup)
-    -   [Prerequisites](#prerequisites)
-    -   [Getting Started](#getting-started)
-    -   [Installation](#installation)
-    -   [Usage](#usage)
-        -   [Running the application locally](#running-the-application-locally)
-        -   [Usage](#usage-1)
+## 2. Vite (Tree Shaking Disabled)
 
-## SSO setup
+**Build command:** `npm run build:no-tree-shake`
+**Output directory:** `dist-vite-no-treeshake/`
 
--   Go to SSO settings page of your Twilio Flex account - you will be able to see ACS url and entity ID for the OAuth 2.0 connection associated with your account
--   Follow this [doc](https://www.twilio.com/docs/flex/admin-guide/setup/sso-configuration#enhanced-and-legacy-sso-configuration) for the SSO setup and refer to the values mentioned under Enhanced SSO configuration. You will find those values in the above step in Console.
--   In order to run this sample app locally, add `http://localhost:5173/agentDesktop` to "Trusted URLs" in [SSO Configuration](https://console.twilio.com/us1/develop/flex/users-and-access/single-sign-on)
+| File | Size | Gzip |
+|------|------|------|
+| index-BmIt23b-.js | 1,819.23 kB | 498.32 kB |
+| index-DrP3N8D4.js | 311.67 kB | 78.75 kB |
+| startRecording-DUE0BoBc.js | 21.14 kB | 8.10 kB |
+| profiler-BxWXPT0N.js | 5.01 kB | 2.29 kB |
+| index.html | 0.42 kB | 0.28 kB |
+| **Total** | **2,157.47 kB** | **587.74 kB** |
 
-## Prerequisites
+## 3. Webpack (Tree Shaking Enabled)
 
-This project requires NodeJS (version 14 or later) and NPM (version 8 or later). Node and NPM are really easy to install. To make sure you have them available on your machine, try running the following command.
+**Build command:** `npm run build:webpack`
+**Output directory:** `dist-webpack/`
 
-```sh
-$ npm -v && node -v
-v8.1.0
-v16.13.0
-```
+| File | Size |
+|------|------|
+| bundle.js | 702.00 kB |
+| 777.bundle.js (recorder) | 19.90 kB |
+| 12.bundle.js (profiler) | 4.91 kB |
+| 92.bundle.js | 0.40 kB |
+| index.html | 0.36 kB |
+| **Total** | **727.57 kB** |
 
-## Getting Started
+## 4. Webpack (Tree Shaking Disabled)
 
-In order to run the application follow this guideline
+**Build command:** `npm run build:webpack:no-tree-shake`
+**Output directory:** `dist-webpack-no-treeshake/`
 
-## Installation
+| File | Size |
+|------|------|
+| bundle.js | 1,659.00 kB |
+| 777.bundle.js (recorder) | 21.20 kB |
+| 12.bundle.js (profiler) | 5.14 kB |
+| 92.bundle.js | 0.40 kB |
+| index.html | 0.36 kB |
+| **Total** | **1,686.10 kB** |
 
-**BEFORE YOU INSTALL:** please read the [prerequisites](#prerequisites)
+## Summary
 
-Start with cloning this repo on your local machine:
-
-```sh
-$ git clone https://github.com/twilio/flex-sdk-demo.git
-$ cd flex-sdk-demo
-```
-
-To install and set up the library, run:
-
-```sh
-$ npm install
-```
-
-## Usage
-
-### Running the application locally
-
-```sh
-$ npm run dev
-```
-
-Open your browser at [localhost:5173](http://localhost:5173/)
-
-### Usage
-
-One of the most common use cases that we try out in the application is triggering an incoming call, accepting it and after the call is complete, end it, and complete the task.
-
--   You can trigger an incoming call using the [twilio-dev-phone](https://www.twilio.com/docs/labs/dev-phone)
--   Accept the call
--   Once done end the call and complete the task
+| Bundler | Tree Shaking | Total Size | Reduction |
+|---------|-------------|------------|-----------|
+| Vite | Enabled | 1,037.62 kB | **51.9%** smaller |
+| Vite | Disabled | 2,157.47 kB | baseline |
+| Webpack | Enabled | 727.57 kB | **56.9%** smaller |
+| Webpack | Disabled | 1,686.10 kB | baseline |
