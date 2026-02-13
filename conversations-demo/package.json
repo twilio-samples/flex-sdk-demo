@@ -1,0 +1,22 @@
+{
+    "name": "conversations-sdk-demo",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "build": "tsc -b && vite build",
+        "build:webpack": "webpack --config webpack.config.js"
+    },
+    "dependencies": {
+        "@twilio/conversations": "2.6.0"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-react": "^4.3.4",
+        "html-webpack-plugin": "^5.6.6",
+        "ts-loader": "^9.5.4",
+        "typescript": "~5.7.2",
+        "vite": "^6.2.7",
+        "webpack": "^5.105.2",
+        "webpack-cli": "^6.0.1"
+    }
+}
