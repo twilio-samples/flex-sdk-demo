@@ -24,8 +24,8 @@ const Login = () => {
                 setError("No active auth config found");
             }
             setData("auth-config", activeConfig);
-            const response = getLoginDetails({
-                ssoProfileSid: authConfig.configList[0].connectionName,
+            const response = await getLoginDetails({
+                ssoProfileSid: authConfig.configList[0].ssoProfileSid,
                 clientId: authConfig.configList[0].clientId,
                 redirectUrl: `${window.location.origin}/agentDesktop`
             });

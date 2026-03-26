@@ -61,7 +61,7 @@ export function TaskList({ client, onSelectTask }: { client: Client; onSelectTas
                                 callTime={new Date(reservation.task.dateCreated)}
                             />
                         </Box>
-                        {reservation.status === "pending" && reservation.task.attributes.direction !== "outbound" && (
+                        {reservation.status === "pending" && (
                             <Box>
                                 <Button
                                     variant="primary_icon"
