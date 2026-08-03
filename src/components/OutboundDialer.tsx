@@ -4,7 +4,7 @@ import { CallIcon } from "@twilio-paste/icons/esm/CallIcon";
 import { Client } from "@twilio/flex-sdk/actions/Conversation";
 import { StartOutboundCall, VoiceCall } from "@twilio/flex-sdk/actions/Voice";
 
-interface OutboundDialerProps {
+export interface OutboundDialerProps {
     client: Client;
     startOutboundCallOptions?: {
         conferenceOptions?: {
@@ -23,7 +23,6 @@ export function OutboundDialer({ client, startOutboundCallOptions = {}, onCallCr
     const [isDialing, setIsDialing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Dial pad numbers and symbols
     const dialPadButtons = [
         ["1", "2", "3"],
         ["4", "5", "6"],
@@ -37,16 +36,12 @@ export function OutboundDialer({ client, startOutboundCallOptions = {}, onCallCr
     }, []);
 
     const handlePhoneNumberChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        // Allow manual editing - keep all characters including letters, symbols, etc.
-        const value = event.target.value;
-        setPhoneNumber(value);
+        setPhoneNumber(event.target.value);
         setError(null);
     }, []);
 
     const validatePhoneNumber = (number: string): boolean => {
-        // More flexible phone number validation - extract only digits
         const cleanNumber = number.replace(/\D/g, "");
-        // Require at least 10 digits for a valid phone number
         return number.startsWith("+") && cleanNumber.length >= 10;
     };
 
@@ -65,8 +60,7 @@ export function OutboundDialer({ client, startOutboundCallOptions = {}, onCallCr
         setError(null);
 
         try {
-            // Format phone number - ensure it starts with +1 if it's a US number
-            let formattedNumber = "+" + phoneNumber.replace(/\D/g, "");
+            const formattedNumber = "+" + phoneNumber.replace(/\D/g, "");
 
             const startOutboundCall = new StartOutboundCall(formattedNumber, {
                 ...startOutboundCallOptions,
@@ -79,7 +73,6 @@ export function OutboundDialer({ client, startOutboundCallOptions = {}, onCallCr
 
             const call = await client.execute(startOutboundCall);
 
-            // Clear the phone number after successful call initiation
             setPhoneNumber("");
             onCallCreated?.(call);
         } catch (err) {
@@ -88,7 +81,7 @@ export function OutboundDialer({ client, startOutboundCallOptions = {}, onCallCr
         } finally {
             setIsDialing(false);
         }
-    }, [client, phoneNumber, startOutboundCallOptions]);
+    }, [client, phoneNumber, startOutboundCallOptions, onCallCreated]);
 
     const handleKeyPress = useCallback(
         (event: React.KeyboardEvent) => {
@@ -102,7 +95,6 @@ export function OutboundDialer({ client, startOutboundCallOptions = {}, onCallCr
     return (
         <Box padding="space60" backgroundColor={"colorBackgroundBody"} width="100%" maxWidth="320px">
             <Stack orientation="vertical" spacing="space50">
-                {/* Phone Number Input */}
                 <Box>
                     <Label htmlFor="phone-input" required>
                         <Text as="span" color={"colorText"} fontSize="fontSize30" fontWeight="fontWeightMedium">
@@ -122,14 +114,12 @@ export function OutboundDialer({ client, startOutboundCallOptions = {}, onCallCr
                     />
                 </Box>
 
-                {/* Error Display */}
                 {error && (
                     <Alert variant="error">
                         <Text as="span">{error}</Text>
                     </Alert>
                 )}
 
-                {/* Dial Pad */}
                 <Box>
                     <Text
                         as="span"
@@ -147,14 +137,9 @@ export function OutboundDialer({ client, startOutboundCallOptions = {}, onCallCr
                                 key={digit}
                                 variant={"secondary"}
                                 size="default"
+                                fullWidth
                                 onClick={() => handleNumberInput(digit)}
                                 disabled={isDialing}
-                                style={{
-                                    width: "60px",
-                                    height: "60px",
-                                    fontSize: "18px",
-                                    fontWeight: "600"
-                                }}
                             >
                                 {digit}
                             </Button>
@@ -162,7 +147,6 @@ export function OutboundDialer({ client, startOutboundCallOptions = {}, onCallCr
                     </Box>
                 </Box>
 
-                {/* Action Buttons */}
                 <Box display="flex" justifyContent="center" marginTop="space40">
                     <Button
                         variant="primary"
@@ -185,7 +169,6 @@ export function OutboundDialer({ client, startOutboundCallOptions = {}, onCallCr
                     </Button>
                 </Box>
 
-                {/* Helper Text */}
                 <Box marginTop="space30">
                     <Text as="p" color={"colorTextWeak"} fontSize="fontSize20" textAlign="center">
                         Type a phone number or use the dial pad, then click Call to start an outbound call

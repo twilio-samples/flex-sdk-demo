@@ -3,9 +3,9 @@ import { AgentDesktop } from "./AgentDesktop";
 import { Box, Spinner, Text } from "@twilio-paste/core";
 
 export function AgentDesktopWrapper() {
-    const { sdkClient, voiceCall, worker } = useSdkClient();
+    const { sdkClient, voiceCall, worker, dataClient, connectionState } = useSdkClient();
 
-    if (!sdkClient) {
+    if (!sdkClient || !dataClient) {
         return (
             <Box
                 flex={1}
@@ -24,5 +24,5 @@ export function AgentDesktopWrapper() {
         );
     }
 
-    return <AgentDesktop sdkClient={sdkClient} voiceCall={voiceCall} worker={worker} />;
+    return <AgentDesktop sdkClient={sdkClient} voiceCall={voiceCall} worker={worker} dataClient={dataClient} connectionState={connectionState} />;
 }

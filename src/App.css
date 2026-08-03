@@ -1,3 +1,67 @@
+:root {
+    /* Monospace stack for KPI tile labels/captions. */
+    --font-mono: ui-monospace, "SF Mono", Menlo, Monaco, "Cascadia Code", "Roboto Mono", monospace;
+    /* Display font for the big KPI number. NOTE: the "Buffalo" webfont/font-file
+       is not bundled yet — add an @font-face (or import) for it, otherwise this
+       falls back to the stack below. */
+    --font-buffalo: "Buffalo", ui-sans-serif, system-ui, "Helvetica Neue", Arial, sans-serif;
+    /* Display font for section headers. Same stack as --font-buffalo; swap the
+       leading family for your brand display face (add an @font-face). */
+    --font-display: var(--font-buffalo);
+}
+
+/* Let the per-component Theme.Provider wrapper (an intermediate div) stretch,
+   so the task rail fills full height and its footer sits at the bottom. */
+.task-rail {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+.task-rail > * {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Dark theme for the react-simple-wysiwyg email editor (ships light by default). */
+.email-editor .rsw-editor {
+    background-color: #0b1120;
+    border: 1px solid #3e4757;
+    border-radius: 8px;
+    color: #edeef2;
+    overflow: hidden;
+}
+.email-editor .rsw-ce {
+    background-color: #0b1120;
+    color: #edeef2;
+    min-height: 180px;
+}
+.email-editor .rsw-ce:focus {
+    outline: none;
+}
+.email-editor .rsw-toolbar {
+    background-color: #161c2b;
+    border-bottom: 1px solid #3e4757;
+}
+.email-editor .rsw-btn {
+    color: #c9ccd6;
+}
+.email-editor .rsw-btn:hover,
+.email-editor .rsw-btn[data-active="true"] {
+    background-color: #2a3346;
+    color: #ffffff;
+}
+.email-editor .rsw-dd {
+    background-color: #161c2b;
+    color: #edeef2;
+    border: 1px solid #3e4757;
+    border-radius: 6px;
+}
+.email-editor .rsw-separator {
+    border-color: #3e4757;
+}
+
 .Twilio-WorkerDirectory-Popup {
     top: 0;
 }

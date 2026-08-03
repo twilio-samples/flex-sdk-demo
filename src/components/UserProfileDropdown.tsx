@@ -10,22 +10,23 @@ import {
     usePopoverState,
     Separator
 } from "@twilio-paste/core";
+import { CustomizationProvider } from "@twilio-paste/core/customization";
 import { ChevronDownIcon } from "@twilio-paste/icons/esm/ChevronDownIcon";
 import { LogOutIcon } from "@twilio-paste/icons/esm/LogOutIcon";
 import { Worker } from "@twilio/flex-sdk/taskrouter";
-import { Theme } from "@twilio-paste/theme";
+import { DROPDOWN_MENU_ELEMENT, PILL_TRIGGER_PROPS } from "./ui/dropdownStyles";
 
-interface UserProfileDropdownProps {
+export interface UserProfileDropdownProps {
     worker?: Worker | null;
     onLogoutClick: () => void;
-    darkMode?: boolean;
 }
 
 export function UserProfileDropdown({ worker, onLogoutClick }: UserProfileDropdownProps) {
-    const popover = usePopoverState();
+    const popover = usePopoverState({});
 
     const attributes = worker?.attributes || {};
     const workerName = attributes.full_name || attributes.friendly_name || worker?.name;
+    const email = typeof attributes.email === "string" ? attributes.email : undefined;
 
     const handleLogout = useCallback(() => {
         popover.hide();
@@ -36,7 +37,7 @@ export function UserProfileDropdown({ worker, onLogoutClick }: UserProfileDropdo
         return (
             <Box display="flex" alignItems="center" padding="space30">
                 <Avatar size="sizeIcon40" name="Loading" />
-                <Text as="span" color={"colorTextInverse"} marginLeft="space20">
+                <Text as="span" color="colorText" marginLeft="space20">
                     Loading...
                 </Text>
             </Box>
@@ -44,54 +45,62 @@ export function UserProfileDropdown({ worker, onLogoutClick }: UserProfileDropdo
     }
 
     return (
-        <Box>
-            <PopoverContainer state={popover}>
-                <Theme.Provider theme="dark">
-                    <PopoverButton variant={"reset"}>
-                        <Box display="flex" alignItems="center">
+        <CustomizationProvider baseTheme="dark" elements={{ PROFILE_MENU: DROPDOWN_MENU_ELEMENT }}>
+            <Box>
+                <PopoverContainer state={popover}>
+                    <PopoverButton variant="reset">
+                        <Box {...PILL_TRIGGER_PROPS} paddingX="space40">
                             <Avatar size="sizeIcon40" name={workerName} />
-                            <Box marginLeft="space20" marginRight="space20">
-                                <Text as="span" color={"colorTextInverse"} fontSize="fontSize30">
-                                    {workerName}
-                                </Text>
-                            </Box>
-                            <ChevronDownIcon decorative color={"colorTextInverse"} size="sizeIcon20" />
+                            <Text as="span" color="colorText" fontSize="fontSize30" fontWeight="fontWeightSemibold">
+                                {workerName}
+                            </Text>
+                            <ChevronDownIcon decorative color="colorTextWeak" size="sizeIcon20" />
                         </Box>
                     </PopoverButton>
-                    <Popover aria-label="User Profile Menu">
-                        <Box padding="space50" minWidth="250px">
-                            {/* User Profile Section */}
-                            <Box display="flex" alignItems="center" marginBottom="space40">
-                                <Avatar size="sizeIcon70" name={workerName} />
-                                <Box marginLeft="space40">
+                    <Popover aria-label="User Profile Menu" element="PROFILE_MENU">
+                        <Box padding="space50" minWidth="260px">
+                            <Box display="flex" alignItems="center" columnGap="space40">
+                                <Avatar size="sizeIcon80" name={workerName} />
+                                <Box display="flex" flexDirection="column">
                                     <Text
-                                        as="p"
-                                        fontSize="fontSize40"
-                                        fontWeight="fontWeightMedium"
+                                        as="span"
+                                        fontSize="fontSize50"
+                                        fontWeight="fontWeightSemibold"
                                         lineHeight="lineHeight40"
                                     >
                                         {workerName}
                                     </Text>
+                                    {email && (
+                                        <Text as="span" fontSize="fontSize30" color="colorTextWeak">
+                                            {email}
+                                        </Text>
+                                    )}
                                 </Box>
                             </Box>
 
-                            <Separator orientation="horizontal" />
+                            <Separator orientation="horizontal" verticalSpacing="space40" />
 
-                            {/* Actions Section */}
-                            <Box marginTop="space40">
-                                <Button variant="destructive_link" size="small" onClick={handleLogout} fullWidth>
-                                    <Box display="flex" alignItems="center" justifyContent="center">
-                                        <LogOutIcon decorative size="sizeIcon20" />
-                                        <Text as="span" marginLeft="space20">
-                                            Logout
-                                        </Text>
-                                    </Box>
-                                </Button>
-                            </Box>
+                            <Button variant="reset" size="reset" fullWidth onClick={handleLogout}>
+                                <Box
+                                    display="flex"
+                                    alignItems="center"
+                                    columnGap="space30"
+                                    width="100%"
+                                    paddingX="space40"
+                                    paddingY="space30"
+                                    borderRadius="borderRadius20"
+                                    _hover={{ backgroundColor: "colorBackgroundStronger" }}
+                                >
+                                    <LogOutIcon decorative color="colorTextError" size="sizeIcon30" />
+                                    <Text as="span" color="colorTextError" fontWeight="fontWeightSemibold">
+                                        Logout
+                                    </Text>
+                                </Box>
+                            </Button>
                         </Box>
                     </Popover>
-                </Theme.Provider>
-            </PopoverContainer>
-        </Box>
+                </PopoverContainer>
+            </Box>
+        </CustomizationProvider>
     );
 }

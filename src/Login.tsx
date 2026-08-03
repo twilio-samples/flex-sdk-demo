@@ -1,8 +1,11 @@
-import { Button, Box, Alert, Label, Input } from "@twilio-paste/core";
+import { Button, Box, Alert, Label, Input, Heading, Text } from "@twilio-paste/core";
+import { Theme } from "@twilio-paste/theme";
+import { LogoTwilioIcon } from "@twilio-paste/icons/esm/LogoTwilioIcon";
 import React, { FormEvent, useEffect, useState } from "react";
 import { getLoginDetails, getAuthenticationConfig } from "@twilio/flex-sdk";
 import { useLocalStorage } from "./hooks/useLocalStorage";
-import twilioLogo from "./assets/logo-twilio.png";
+
+const HEADING_ID = "runtime-domain-heading";
 
 const Login = () => {
     const [error, setError] = useState<string | null>();
@@ -22,11 +25,12 @@ const Login = () => {
             const activeConfig = authConfig.configList.find((config) => config.active);
             if (!activeConfig) {
                 setError("No active auth config found");
+                return;
             }
             setData("auth-config", activeConfig);
             const response = await getLoginDetails({
-                ssoProfileSid: authConfig.configList[0].ssoProfileSid,
-                clientId: authConfig.configList[0].clientId,
+                ssoProfileSid: activeConfig.connectionName,
+                clientId: activeConfig.clientId,
                 redirectUrl: `${window.location.origin}/agentDesktop`
             });
             setData("login-details", response);
@@ -38,49 +42,65 @@ const Login = () => {
     };
 
     return (
-        <Box
-            backgroundColor={"colorBackgroundBodyInverse"}
-            alignItems={"center"}
-            justifyContent={"center"}
-            display="flex"
-            flexDirection="column"
-            height="100vh"
-        >
-            <form
-                aria-labelledby={"runtime-domain-heading"}
-                onSubmit={(e: FormEvent<HTMLFormElement>) => handleLogin(e)}
+        <Theme.Provider theme="dark">
+            <Box
+                backgroundColor="colorBackgroundBody"
+                alignItems="center"
+                justifyContent="center"
+                display="flex"
+                height="100vh"
+                paddingX="space60"
             >
-                <Box as="h2" id={"address-heading"} color={"colorTextBrandInverse"} textAlign={"center"}>
-                    <Box display="flex" alignItems="center" justifyContent="center">
-                        <img src={twilioLogo} alt="Twilio Logo" style={{ height: "180px" }} />
+                <Box
+                    as="form"
+                    aria-labelledby={HEADING_ID}
+                    onSubmit={(e: FormEvent<HTMLFormElement>) => handleLogin(e)}
+                    width="100%"
+                    maxWidth="400px"
+                    display="flex"
+                    flexDirection="column"
+                    rowGap="space60"
+                    padding="space90"
+                    borderWidth="borderWidth10"
+                    borderStyle="solid"
+                    borderColor="colorBorderWeaker"
+                    borderRadius="borderRadius30"
+                    backgroundColor="colorBackground"
+                >
+                    <Box display="flex" flexDirection="column" alignItems="center" rowGap="space40">
+                        <LogoTwilioIcon decorative={false} title="Twilio" color="colorTextError" size="sizeIcon110" />
+                        <Heading as="h1" variant="heading20" marginBottom="space0">
+                            Flex SDK Demo
+                        </Heading>
+                        <Text as="p" fontSize="fontSize30" color="colorTextWeak" textAlign="center">
+                            Sign in to your Flex workspace to continue.
+                        </Text>
                     </Box>
-                    Flex SDK Demo
-                </Box>
-                <Box marginBottom={"space60"}>
-                    <Label htmlFor={"runtime-domain"} variant="inverse">
-                        Enter Runtime Domain
-                    </Label>
-                    <Input
-                        type="text"
-                        id={"runtime-domain"}
-                        name="friendly-name"
-                        value={runtimeDomain}
-                        onChange={(e) => setRuntimeDomain(e.target.value)}
-                        placeholder="Enter your runtime domain"
-                    />
-                </Box>
-                <Button variant="primary" type="submit" fullWidth>
-                    Submit
-                </Button>
-                {error && (
-                    <Box marginBottom="space40" marginTop="space40">
+
+                    <Box display="flex" flexDirection="column" rowGap="space20">
+                        <Label htmlFor="runtime-domain">Runtime domain</Label>
+                        <Input
+                            type="text"
+                            id="runtime-domain"
+                            name="runtime-domain"
+                            value={runtimeDomain}
+                            onChange={(e) => setRuntimeDomain(e.target.value)}
+                            placeholder="Enter your runtime domain"
+                        />
+                    </Box>
+
+                    <Button variant="primary" type="submit" fullWidth disabled={!runtimeDomain.trim()}>
+                        Submit
+                    </Button>
+
+                    {error && (
                         <Alert variant="error">
                             <strong>Error:</strong> {error}
                         </Alert>
-                    </Box>
-                )}
-            </form>
-        </Box>
+                    )}
+                </Box>
+            </Box>
+        </Theme.Provider>
     );
 };
 

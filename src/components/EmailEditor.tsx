@@ -9,6 +9,17 @@ import {
 } from "@twilio/flex-sdk/actions/Conversation";
 import HTMLEditor from "react-simple-wysiwyg";
 
+export interface EmailEditorProps {
+    client: Client;
+    reservation: Reservation;
+    htmlInput: string;
+    participants: TaskParticipant[];
+    subject: string;
+    setSubject: (subject: string) => void;
+    onChange: (newValue: string) => void;
+    onParticipantsChange: () => void;
+}
+
 export function EmailEditor({
     client,
     reservation,
@@ -18,16 +29,7 @@ export function EmailEditor({
     setSubject,
     onChange,
     onParticipantsChange
-}: {
-    client: Client;
-    reservation: Reservation;
-    htmlInput: string;
-    participants: TaskParticipant[];
-    subject: string;
-    setSubject: (subject: string) => void;
-    onChange: (newValue: string) => void;
-    onParticipantsChange: () => void;
-}): JSX.Element {
+}: EmailEditorProps): JSX.Element {
     return (
         <Box>
             <Box>
@@ -45,18 +47,28 @@ export function EmailEditor({
                     reservation={reservation}
                     onParticipantsChange={onParticipantsChange}
                 />
-                <Box display={"flex"} alignItems={"center"} marginBottom={"space40"}>
-                    <Text as="span" color="colorTextInverse" marginRight={"space30"}>
+                <Box display={"flex"} alignItems={"center"} columnGap="space30" marginBottom={"space40"}>
+                    <Text as="span" color="colorText" fontWeight="fontWeightSemibold">
                         Subject:
                     </Text>
-                    <Input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} />
+                    <Box flex={1}>
+                        <Input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} />
+                    </Box>
                 </Box>
             </Box>
-            <Box backgroundColor="colorBackground">
+            <Box className="email-editor">
                 <HTMLEditor value={htmlInput} onChange={(e) => onChange(e.target.value)} />
             </Box>
         </Box>
     );
+}
+
+export interface ParticipantLevelLineProps {
+    reservation: Reservation;
+    client: Client;
+    participants: TaskParticipant[];
+    level: ParticipantLevel;
+    onParticipantsChange: () => void;
 }
 
 export function ParticipantLevelLine({
@@ -65,18 +77,12 @@ export function ParticipantLevelLine({
     participants,
     reservation,
     onParticipantsChange
-}: {
-    reservation: Reservation;
-    client: Client;
-    participants: TaskParticipant[];
-    level: ParticipantLevel;
-    onParticipantsChange: () => void;
-}): JSX.Element {
+}: ParticipantLevelLineProps): JSX.Element {
     const pillState = useFormPillState();
 
     return (
-        <Box display={"flex"} marginBottom={"space40"}>
-            <Text as="span" color="colorTextInverse" marginRight={"space30"}>
+        <Box display={"flex"} alignItems={"center"} marginBottom={"space40"}>
+            <Text as="span" color="colorText" fontWeight="fontWeightSemibold" marginRight={"space30"}>
                 {level.toLocaleUpperCase().substring(0, 1) + level.substring(1)}:
             </Text>
             <FormPillGroup {...pillState} aria-label="Products:">
@@ -111,7 +117,7 @@ export function ParticipantLevelLine({
                     style={{
                         backgroundColor: "transparent",
                         border: "none",
-                        color: "white",
+                        color: "inherit",
                         height: "100%",
                         width: "100%",
                         marginLeft: 8
