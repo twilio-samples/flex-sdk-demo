@@ -22,17 +22,14 @@ import { getAccountConfig, StartVoiceTaskTransfer } from "@twilio/flex-sdk";
 import { TransferModal } from "./TransferModal";
 import { Theme } from "@twilio-paste/theme";
 
-export function CallPanel({
-    client,
-    worker,
-    reservationSid,
-    call
-}: {
+export interface CallPanelProps {
     client: Client;
     reservationSid: string;
     call: VoiceCall | undefined;
     worker: Worker;
-}): JSX.Element | null {
+}
+
+export function CallPanel({ client, worker, reservationSid, call }: CallPanelProps): JSX.Element | null {
     const reservation = useReservation(reservationSid);
     const participants = useParticipantState((state) => state.participants[reservationSid]);
     const [isRecording, setIsRecording] = useState(true);
@@ -58,36 +55,40 @@ export function CallPanel({
     if (!isActiveCall) {
         if (reservation?.status === "accepted") {
             return (
-                <Box
-                    display="flex"
-                    flexDirection="row"
-                    justifyContent="center"
-                    alignItems="center"
-                    height={300}
-                    padding={"space40"}
-                    backgroundColor={"colorBackgroundBodyInverse"}
-                >
-                    <Text as="h1" fontSize={"fontSize50"} color="colorTextBrandInverse">
-                        Call is active on another session
-                    </Text>
-                </Box>
+                <Theme.Provider theme="dark">
+                    <Box
+                        display="flex"
+                        flexDirection="row"
+                        justifyContent="center"
+                        alignItems="center"
+                        height={300}
+                        padding={"space40"}
+                        backgroundColor={"colorBackgroundBodyInverse"}
+                    >
+                        <Text as="h1" fontSize={"fontSize50"} color="colorTextBrandInverse">
+                            Call is active on another session
+                        </Text>
+                    </Box>
+                </Theme.Provider>
             );
         }
         if (reservation?.status === "wrapping") {
             return (
-                <Box
-                    display="flex"
-                    flexDirection="row"
-                    justifyContent="center"
-                    alignItems="center"
-                    height={300}
-                    padding={"space40"}
-                    backgroundColor={"colorBackgroundBodyInverse"}
-                >
-                    <Text as="h1" fontSize={"fontSize50"} color="colorTextBrandInverse">
-                        Call ended
-                    </Text>
-                </Box>
+                <Theme.Provider theme="dark">
+                    <Box
+                        display="flex"
+                        flexDirection="row"
+                        justifyContent="center"
+                        alignItems="center"
+                        height={300}
+                        padding={"space40"}
+                        backgroundColor={"colorBackgroundBodyInverse"}
+                    >
+                        <Text as="h1" fontSize={"fontSize50"} color="colorTextBrandInverse">
+                            Call ended
+                        </Text>
+                    </Box>
+                </Theme.Provider>
             );
         }
     }
@@ -128,8 +129,8 @@ export function CallPanel({
                                             <Text as="span" color="colorTextBrandInverse">
                                                 {participant.type === "customer"
                                                     ? participantDisplayName
-                                                    : workers?.[participant.routingProperties?.workerSid || ""] ??
-                                                      "Worker"}
+                                                    : (workers?.[participant.routingProperties?.workerSid || ""] ??
+                                                      "Worker")}
                                             </Text>
                                             <Box display={"flex"} columnGap={"space40"}>
                                                 <Button

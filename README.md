@@ -6,26 +6,27 @@ This is a sample app to demonstrate the use of Flex SDK to build standalone apps
 
 Some prerequisites to run this application are as follows:
 
--   You should have a Twilio Flex account
--   You have a verified Phone number for your Flex instance
--   Your Studio Flow is correctly configured with your Flex instance
--   Your Flex account is correctly configured with Enhanced SSO or you have a service capable of provisioning a user authentication token
+- You should have a Twilio Flex account
+- You have a verified Phone number for your Flex instance
+- Your Studio Flow is correctly configured with your Flex instance
+- Your Flex account is correctly configured with Enhanced SSO or you have a service capable of provisioning a user authentication token
 
--   [Flex SDK Demo](#flex-sdk-demo)
-    -   [Why](#why)
-    -   [SSO setup](#sso-setup)
-    -   [Prerequisites](#prerequisites)
-    -   [Getting Started](#getting-started)
-    -   [Installation](#installation)
-    -   [Usage](#usage)
-        -   [Running the application locally](#running-the-application-locally)
-        -   [Usage](#usage-1)
+- [Flex SDK Demo](#flex-sdk-demo)
+    - [Why](#why)
+    - [SSO setup](#sso-setup)
+    - [Prerequisites](#prerequisites)
+    - [Getting Started](#getting-started)
+    - [Installation](#installation)
+    - [Usage](#usage)
+        - [Running the application locally](#running-the-application-locally)
+        - [Usage](#usage-1)
 
 ## SSO setup
 
--   Go to SSO settings page of your Twilio Flex account - you will be able to see ACS url and entity ID for the OAuth 2.0 connection associated with your account
--   Follow this [doc](https://www.twilio.com/docs/flex/admin-guide/setup/sso-configuration#enhanced-and-legacy-sso-configuration) for the SSO setup and refer to the values mentioned under Enhanced SSO configuration. You will find those values in the above step in Console.
--   In order to run this sample app locally, add `http://localhost:5173/agentDesktop` to "Trusted URLs" in [SSO Configuration](https://console.twilio.com/us1/develop/flex/users-and-access/single-sign-on)
+- Go to SSO settings page of your Twilio Flex account - you will be able to see ACS url and entity ID for the OAuth 2.0 connection associated with your account
+- Follow this [doc](https://www.twilio.com/docs/flex/admin-guide/setup/sso-configuration#enhanced-and-legacy-sso-configuration) for the SSO setup and refer to the values mentioned under Enhanced SSO configuration. You will find those values in the above step in Console.
+- In order to run this sample app locally, add `http://localhost:5173/agentDesktop` to "Trusted URLs" in [SSO Configuration](https://console.twilio.com/us1/develop/flex/users-and-access/single-sign-on)
+- When you log in, you'll have to enter your Flex runtime domain. This is the part of your Flex URL that comes after .com. For example, if the full URL is https://flex.twilio.com/unique-domain-1234, the runtime domain is `unique-domain-1234`. This url is visible in [SSO Configuration](https://console.twilio.com/us1/develop/flex/users-and-access/single-sign-on) page.
 
 ## Prerequisites
 
@@ -72,6 +73,6 @@ Open your browser at [localhost:5173](http://localhost:5173/)
 
 One of the most common use cases that we try out in the application is triggering an incoming call, accepting it and after the call is complete, end it, and complete the task.
 
--   You can trigger an incoming call using the [twilio-dev-phone](https://www.twilio.com/docs/labs/dev-phone)
--   Accept the call
--   Once done end the call and complete the task
+- You can trigger an incoming call using the [twilio-dev-phone](https://www.twilio.com/docs/labs/dev-phone)
+- Accept the call
+- Once done end the call and complete the task

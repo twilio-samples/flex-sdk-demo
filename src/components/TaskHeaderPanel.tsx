@@ -1,11 +1,11 @@
 import { Box, Button } from "@twilio-paste/core";
+import { Theme } from "@twilio-paste/theme";
 import { ConversationsUser, EndTask, StartConversationTransfer } from "@twilio/flex-sdk";
 import {
     Client,
     GetConversationsUser,
     LeaveConversation,
-    PauseConversation,
-    TaskParticipant
+    PauseConversation
 } from "@twilio/flex-sdk/actions/Conversation";
 import { getTaskName } from "../utils/TaskUtils";
 import { TaskListItemContent } from "./TaskList";
@@ -14,10 +14,13 @@ import { useReservations } from "../hooks/useReservations";
 import { TransferModal } from "./TransferModal";
 import { useEffect, useState } from "react";
 
-export function TaskHeaderPanel({ client, reservationSid }: { client: Client; reservationSid: string }): JSX.Element {
+export interface TaskHeaderPanelProps {
+    client: Client;
+    reservationSid: string;
+}
+
+export function TaskHeaderPanel({ client, reservationSid }: TaskHeaderPanelProps): JSX.Element {
     const reservations = useReservations();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_participants, setParticipants] = useState<TaskParticipant[]>([]);
     const [conversationUser, setConversationUser] = useState<ConversationsUser>();
     const [isOnline, setIsOnline] = useState(false);
 
@@ -28,19 +31,23 @@ export function TaskHeaderPanel({ client, reservationSid }: { client: Client; re
             return;
         }
         const response = await client.execute(new GetTaskParticipants(reservation.task.sid!));
-        setParticipants(response);
 
         const customerParticipant = response.find((r) => r.type === "customer");
+        const identity = customerParticipant?.mediaProperties?.identity;
 
-        if (customerParticipant) {
-            const conversationsUser = await client.execute(
-                new GetConversationsUser(customerParticipant.mediaProperties?.identity)
-            );
+        if (typeof identity !== "string" || identity.length === 0) {
+            return;
+        }
+
+        try {
+            const conversationsUser = await client.execute(new GetConversationsUser(identity));
             setConversationUser(conversationsUser);
 
             if (conversationsUser) {
                 setIsOnline(!!conversationsUser.isOnline);
             }
+        } catch (error) {
+            console.error("Failed to fetch conversations user:", error);
         }
     };
 
@@ -60,95 +67,98 @@ export function TaskHeaderPanel({ client, reservationSid }: { client: Client; re
     }, [reservationSid]);
 
     return (
-        <Box
-            padding="space40"
-            color={"colorTextInverse"}
-            paddingRight={"space40"}
-            display={"flex"}
-            borderBottomWidth={"borderWidth10"}
-            borderBottomColor={"colorBorderInverse"}
-            borderBottomStyle={"solid"}
-        >
-            <Box flex={1}>
-                <Box
-                    as="span"
-                    color={"colorTextInverse"}
-                    margin={"space0"}
-                    fontSize={"fontSize40"}
-                    fontWeight={"fontWeightBold"}
-                    paddingLeft="space20"
-                >
-                    {reservation && getTaskName(reservation?.task.attributes)}
+        <Theme.Provider theme="dark">
+            <Box
+                padding="space40"
+                color={"colorText"}
+                paddingRight={"space40"}
+                display={"flex"}
+                backgroundColor="colorBackgroundBody"
+                borderBottomWidth={"borderWidth10"}
+                borderBottomColor={"colorBorderWeaker"}
+                borderBottomStyle={"solid"}
+            >
+                <Box flex={1}>
+                    <Box
+                        as="span"
+                        color={"colorText"}
+                        margin={"space0"}
+                        fontSize={"fontSize40"}
+                        fontWeight={"fontWeightBold"}
+                        paddingLeft="space20"
+                    >
+                        {reservation && getTaskName(reservation?.task.attributes)}
+                    </Box>
+                    {reservation && (
+                        <TaskListItemContent
+                            callTime={reservation?.task.dateCreated}
+                            taskContent={conversationUser ? (isOnline ? "Online" : "Offline") : reservation?.status}
+                        />
+                    )}
                 </Box>
-                {reservation && (
-                    <TaskListItemContent
-                        callTime={reservation?.task.dateCreated}
-                        taskContent={conversationUser ? (isOnline ? "Online" : "Offline") : reservation?.status}
-                    />
-                )}
-            </Box>
 
-            {reservation?.status === "accepted" && (
-                <>
+                {reservation?.status === "accepted" && (
+                    <>
+                        <Box marginLeft={"space30"}>
+                            <Button
+                                variant="primary"
+                                onClick={() => {
+                                    client.execute(new EndTask(reservation.task.sid));
+                                }}
+                            >
+                                End
+                            </Button>
+                        </Box>
+                        {reservation.task.taskChannelUniqueName !== "voice" && (
+                            <>
+                                <Box marginLeft={"space30"}>
+                                    <Button
+                                        variant="secondary"
+                                        onClick={() => {
+                                            client.execute(new PauseConversation(reservation.task.sid));
+                                        }}
+                                    >
+                                        Pause
+                                    </Button>
+                                </Box>
+                                <Box marginLeft={"space30"}>
+                                    <Button
+                                        variant="secondary"
+                                        onClick={() => {
+                                            client.execute(new LeaveConversation(reservation.task.sid));
+                                        }}
+                                    >
+                                        Leave
+                                    </Button>
+                                </Box>
+                                <Box marginLeft={"space30"}>
+                                    <TransferModal
+                                        client={client}
+                                        onSelect={(targetSid) => {
+                                            return client.execute(
+                                                new StartConversationTransfer(reservation.task.sid, targetSid)
+                                            );
+                                        }}
+                                    />
+                                </Box>
+                            </>
+                        )}
+                    </>
+                )}
+
+                {reservation?.status === "wrapping" && (
                     <Box marginLeft={"space30"}>
                         <Button
                             variant="primary"
                             onClick={() => {
-                                client.execute(new EndTask(reservation.task.sid));
+                                client.execute(new CompleteTask(reservation.task.sid));
                             }}
                         >
-                            End
+                            Complete
                         </Button>
                     </Box>
-                    {reservation.task.taskChannelUniqueName !== "voice" && (
-                        <>
-                            <Box marginLeft={"space30"}>
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => {
-                                        client.execute(new PauseConversation(reservation.task.sid));
-                                    }}
-                                >
-                                    Pause
-                                </Button>
-                            </Box>
-                            <Box marginLeft={"space30"}>
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => {
-                                        client.execute(new LeaveConversation(reservation.task.sid));
-                                    }}
-                                >
-                                    Leave
-                                </Button>
-                            </Box>
-                            <Box marginLeft={"space30"}>
-                                <TransferModal
-                                    client={client}
-                                    onSelect={(targetSid) => {
-                                        return client.execute(
-                                            new StartConversationTransfer(reservation.task.sid, targetSid)
-                                        );
-                                    }}
-                                />
-                            </Box>
-                        </>
-                    )}
-                </>
-            )}
-
-            {reservation?.status === "wrapping" && (
-                <Box marginLeft={"space30"}>
-                    <Button
-                        variant="primary"
-                        onClick={() => {
-                            client.execute(new CompleteTask(reservation.task.sid));
-                        }}
-                    >
-                        Complete
-                    </Button>
-                </Box>
-            )}
-        </Box>
+                )}
+            </Box>
+        </Theme.Provider>
     );
 }

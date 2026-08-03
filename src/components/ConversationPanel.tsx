@@ -14,23 +14,21 @@ import {
     Client,
     Conversation,
     GetConversationTransfers,
-    GetConversationByTask,
+    GetConversationByTask
 } from "@twilio/flex-sdk/actions/Conversation";
-import {
-    GetTaskParticipants,
-    TaskParticipant,
-} from "@twilio/flex-sdk/actions/Task";
-import {
-    Media,
-    Message as TwilioMessage
-} from "@twilio/flex-sdk";
+import { GetTaskParticipants, TaskParticipant } from "@twilio/flex-sdk/actions/Task";
+import { Media, Message as TwilioMessage } from "@twilio/flex-sdk";
 import { Worker } from "@twilio/flex-sdk/taskrouter";
 import { useEffect, useRef, useState } from "react";
 import { AttachIcon } from "@twilio-paste/icons/esm/AttachIcon";
 import { SendIcon } from "@twilio-paste/icons/esm/SendIcon";
+import { DocumentationIcon } from "@twilio-paste/icons/esm/DocumentationIcon";
 import { MediaPickerModal } from "./MediaPickerModal";
+import { TemplatePickerModal } from "./TemplatePickerModal";
 import { EmailEditor } from "./EmailEditor";
 import { useReservation } from "../hooks/useReservation";
+import { Theme } from "@twilio-paste/theme";
+import { ANON_USER_SID_LENGTH, ANON_USER_SID_PREFIX } from "../constants";
 
 type Message = {
     type: "message";
@@ -50,24 +48,26 @@ type TransferMessage = {
 };
 
 export function isAnonymousUserSid(maybeAnonymousUserSid: string | undefined): boolean {
-    return Boolean(maybeAnonymousUserSid?.startsWith("FX") && maybeAnonymousUserSid?.length === 34);
+    return Boolean(
+        maybeAnonymousUserSid?.startsWith(ANON_USER_SID_PREFIX) &&
+        maybeAnonymousUserSid?.length === ANON_USER_SID_LENGTH
+    );
 }
 
-export function ConversationPanel({
-    client,
-    worker,
-    reservationSid
-}: {
+export interface ConversationPanelProps {
     client: Client;
     worker: Worker;
     reservationSid: string;
-}): JSX.Element | null {
+}
+
+export function ConversationPanel({ client, worker, reservationSid }: ConversationPanelProps): JSX.Element | null {
     const [input, setInput] = useState<string>("");
     const [htmlInput, setHtmlInput] = useState<string>("");
     const [subject, setSubject] = useState<string>("");
 
     const [conversation, setConversation] = useState<Conversation>();
     const fileRef = useRef<HTMLInputElement>(null);
+    const [isTemplatePickerOpen, setIsTemplatePickerOpen] = useState(false);
     const [messages, setMessages] = useState<(Message | TransferMessage)[]>([]);
     const reservation = useReservation(reservationSid);
 
@@ -90,6 +90,8 @@ export function ConversationPanel({
         if (!taskSid) {
             return;
         }
+
+        let activeConversation: Conversation | undefined;
 
         const messageAddedListener = async (message: TwilioMessage) => {
             let htmlURL = undefined;
@@ -117,10 +119,9 @@ export function ConversationPanel({
             try {
                 const response = await client.execute(new GetConversationByTask(taskSid));
                 setConversation(response);
+                activeConversation = response;
                 const messages = await Promise.all(
-                    (
-                        await response.getMessages()
-                    ).items.map(async (message) => {
+                    (await response.getMessages()).items.map(async (message) => {
                         let htmlURL = undefined;
                         if (isEmailTask) {
                             htmlURL = await message.getEmailBody("text/html")?.getContentTemporaryUrl();
@@ -163,7 +164,7 @@ export function ConversationPanel({
                 const transferMessages = res.map((transfer) => {
                     return {
                         type: "transfer",
-                        body: `Transfered to ${transfer.to}`,
+                        body: `Transferred to ${transfer.to}`,
                         dateCreated: transfer.dateCreated
                     } as TransferMessage;
                 });
@@ -176,156 +177,185 @@ export function ConversationPanel({
             }
         };
 
-        const fetchParticipants = async () => {
-            const response = await client.execute(new GetTaskParticipants(taskSid));
-            setParticipants(response);
-        };
         setMessages([]);
         fetchLogs();
         fetchTransferLogs();
         fetchParticipants();
         return () => {
-            if (conversation) {
-                conversation.conversation.removeListener("messageAdded", messageAddedListener);
-            }
+            activeConversation?.conversation.removeListener("messageAdded", messageAddedListener);
         };
-    }, []);
+    }, [reservationSid]);
 
     if (!reservation) {
         return null;
     }
 
     return (
-        <Box display={"flex"} flexDirection={"column"} height={"100%"}>
-            <MediaPickerModal
-                fileRef={fileRef}
-                onSendMedia={(file: File) => {
-                    if (file) {
-                        conversation?.sendMessage({ attachedFiles: [file], body: "" });
-                        setInput("");
-                    }
-                }}
-            />
-            <Box flexBasis={1 as unknown as string} flexGrow={1} overflow={"hidden"}>
-                <Box height={"100%"} overflow={"scroll"} ref={ref}>
-                    <ChatLog>
-                        {messages.map((message, index) => {
-                            if (message.type === "message") {
-                                return (
-                                    <ChatMessage variant={message.variant} key={index}>
-                                        <ChatBubble>
-                                            <Flex vertical>
-                                                {message.subject && "Subject: " + message.subject}
-
-                                                {message.htmlURL ? (
-                                                    <iframe style={{ border: 0 }} src={message.htmlURL} />
-                                                ) : (
-                                                    message.body
-                                                )}
-                                                {message.media && <ImageMessage media={message.media} />}
-                                            </Flex>
-                                        </ChatBubble>
-                                        <ChatMessageMeta aria-label="">
-                                            <ChatMessageMetaItem>
-                                                {message.author} ・ {message.dateCreated?.toLocaleString() || ""}
-                                            </ChatMessageMetaItem>
-                                        </ChatMessageMeta>
-                                    </ChatMessage>
-                                );
-                            } else {
-                                return (
-                                    <Box width={"100%"} alignItems={"center"} key={index}>
-                                        <Text as="p" color="colorTextInverse" textAlign={"center"}>
-                                            {message.body}
-                                        </Text>
-                                    </Box>
-                                );
-                            }
-                        })}
-                    </ChatLog>
-                </Box>
-            </Box>
-            <Box display="flex">
-                <Box flex={1}>
-                    {reservation?.task.attributes.channelType === "email" && (
-                        <EmailEditor
-                            client={client}
-                            reservation={reservation}
-                            htmlInput={htmlInput}
-                            onChange={setHtmlInput}
-                            participants={participants}
-                            onParticipantsChange={() => fetchParticipants()}
-                            subject={subject}
-                            setSubject={setSubject}
-                        />
-                    )}
-                    {reservation?.task.attributes.channelType !== "email" && (
-                        <Input
-                            aria-describedby="display_name_help_text"
-                            id="message_title"
-                            name="display_name"
-                            type="text"
-                            placeholder="Ahoy, World"
-                            value={input}
-                            onKeyDownCapture={(e) => {
-                                if (e.key === "Enter") {
-                                    if (input) {
-                                        conversation?.sendMessage({ body: input });
-                                        setInput("");
-                                    }
-                                }
-                            }}
-                            onChange={(e) => {
-                                if (e.target.value.length > 0) {
-                                    conversation?.sendTyping();
-                                }
-                                setInput(e.target.value);
-                            }}
-                            insertAfter={
-                                <Button variant="secondary_icon" size="reset" onClick={() => fileRef.current?.click()}>
-                                    <Box paddingTop={"space20"} paddingBottom={"space20"}>
-                                        <AttachIcon decorative={false} title="attach files to the message" />
-                                    </Box>
-                                </Button>
-                            }
-                        />
-                    )}
-                </Box>
-
-                <Button
-                    variant="primary_icon"
-                    size="reset"
-                    onClick={() => {
-                        if (reservation?.task.attributes.channelType === "email") {
-                            if (htmlInput) {
-                                conversation?.sendMessage({
-                                    htmlBody: htmlInput,
-                                    plainTextBody: "",
-                                    subject: subject
-                                });
-                                setHtmlInput("");
-                            }
-                        } else {
-                            if (input) {
-                                conversation?.sendMessage({ body: input });
-                                setInput("");
-                            }
+        <Theme.Provider theme="dark" style={{flex:1}}>
+            <Box
+                display={"flex"}
+                flexDirection={"column"}
+                height={"100%"}
+                backgroundColor="colorBackgroundBody"
+                color="colorText"
+            >
+                <MediaPickerModal
+                    fileRef={fileRef}
+                    onSendMedia={(file: File) => {
+                        if (file) {
+                            conversation?.sendMessage({ attachedFiles: [file], body: "" });
+                            setInput("");
                         }
                     }}
-                >
-                    <Box
-                        padding={"space40"}
-                        marginRight={"space80"}
-                        marginLeft={"space40"}
-                        marginBottom="space50"
-                        borderRadius={"borderRadiusCircle"}
-                        backgroundColor={"colorBackground"}
-                    >
-                        <SendIcon decorative={false} title="Send" />
+                />
+                <TemplatePickerModal
+                    isOpen={isTemplatePickerOpen}
+                    onClose={() => setIsTemplatePickerOpen(false)}
+                    client={client}
+                    conversation={conversation}
+                />
+                <Box flexBasis={1 as unknown as string} flexGrow={1}>
+                    <Box height={"100%"} overflow={"scroll"} ref={ref}>
+                        <ChatLog>
+                            {messages.map((message, index) => {
+                                if (message.type === "message") {
+                                    return (
+                                        <ChatMessage variant={message.variant} key={index}>
+                                            <ChatBubble>
+                                                <Flex vertical>
+                                                    {message.subject && "Subject: " + message.subject}
+
+                                                    {message.htmlURL ? (
+                                                        <iframe style={{ border: 0 }} src={message.htmlURL} />
+                                                    ) : (
+                                                        message.body
+                                                    )}
+                                                    {message.media && <ImageMessage media={message.media} />}
+                                                </Flex>
+                                            </ChatBubble>
+                                            <ChatMessageMeta aria-label="">
+                                                <ChatMessageMetaItem>
+                                                    {message.author} ・ {message.dateCreated?.toLocaleString() || ""}
+                                                </ChatMessageMetaItem>
+                                            </ChatMessageMeta>
+                                        </ChatMessage>
+                                    );
+                                } else {
+                                    return (
+                                        <Box width={"100%"} alignItems={"center"} key={index}>
+                                            <Text as="p" color="colorTextWeak" textAlign={"center"}>
+                                                {message.body}
+                                            </Text>
+                                        </Box>
+                                    );
+                                }
+                            })}
+                        </ChatLog>
                     </Box>
-                </Button>
+                </Box>
+                <Box
+                    display="flex"
+                    alignItems="flex-end"
+                    columnGap="space40"
+                    padding="space50"
+                    borderTopStyle="solid"
+                    borderTopWidth="borderWidth10"
+                    borderTopColor="colorBorderWeaker"
+                    backgroundColor="colorBackground"
+                >
+                    <Box flex={1}>
+                        {reservation?.task.attributes.channelType === "email" && (
+                            <EmailEditor
+                                client={client}
+                                reservation={reservation}
+                                htmlInput={htmlInput}
+                                onChange={setHtmlInput}
+                                participants={participants}
+                                onParticipantsChange={() => fetchParticipants()}
+                                subject={subject}
+                                setSubject={setSubject}
+                            />
+                        )}
+                        {reservation?.task.attributes.channelType !== "email" && (
+                            <Input
+                                aria-describedby="display_name_help_text"
+                                id="message_title"
+                                name="display_name"
+                                type="text"
+                                placeholder="Ahoy, World"
+                                value={input}
+                                onKeyDownCapture={(e) => {
+                                    if (e.key === "Enter") {
+                                        if (input) {
+                                            conversation?.sendMessage({ body: input });
+                                            setInput("");
+                                        }
+                                    }
+                                }}
+                                onChange={(e) => {
+                                    if (e.target.value.length > 0) {
+                                        conversation?.sendTyping();
+                                    }
+                                    setInput(e.target.value);
+                                }}
+                                insertAfter={
+                                    <Box display="flex">
+                                        <Button
+                                            variant="secondary_icon"
+                                            size="reset"
+                                            onClick={() => setIsTemplatePickerOpen(true)}
+                                        >
+                                            <Box paddingTop={"space20"} paddingBottom={"space20"}>
+                                                <DocumentationIcon decorative={false} title="pick a content template" />
+                                            </Box>
+                                        </Button>
+                                        <Button
+                                            variant="secondary_icon"
+                                            size="reset"
+                                            onClick={() => fileRef.current?.click()}
+                                        >
+                                            <Box paddingTop={"space20"} paddingBottom={"space20"}>
+                                                <AttachIcon decorative={false} title="attach files to the message" />
+                                            </Box>
+                                        </Button>
+                                    </Box>
+                                }
+                            />
+                        )}
+                    </Box>
+
+                    <Button
+                        variant="primary_icon"
+                        size="reset"
+                        onClick={() => {
+                            if (reservation?.task.attributes.channelType === "email") {
+                                if (htmlInput) {
+                                    conversation?.sendMessage({
+                                        htmlBody: htmlInput,
+                                        plainTextBody: "",
+                                        subject: subject
+                                    });
+                                    setHtmlInput("");
+                                }
+                            } else {
+                                if (input) {
+                                    conversation?.sendMessage({ body: input });
+                                    setInput("");
+                                }
+                            }
+                        }}
+                    >
+                        <Box
+                            padding={"space40"}
+                            borderRadius={"borderRadiusCircle"}
+                            backgroundColor={"colorBackgroundPrimaryStrong"}
+                        >
+                            <SendIcon decorative={false} title="Send" color="colorTextInverse" />
+                        </Box>
+                    </Button>
+                </Box>
             </Box>
-        </Box>
+        </Theme.Provider>
     );
 }
 

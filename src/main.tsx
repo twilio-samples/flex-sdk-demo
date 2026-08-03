@@ -4,7 +4,7 @@ import Navigation from "./Navigation.tsx";
 import "./App.css";
 
 ReactDOM.render(
-    <Theme.Provider theme={ThemeVariants.FLEX}>
+    <Theme.Provider theme={ThemeVariants.DEFAULT}>
         <Navigation />
     </Theme.Provider>,
     document.getElementById("root")

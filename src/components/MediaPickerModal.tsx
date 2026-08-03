@@ -9,10 +9,10 @@ import { Button } from "@twilio-paste/core/button";
 import { ArrowBackIcon } from "@twilio-paste/icons/cjs/ArrowBackIcon";
 import { Theme } from "@twilio-paste/theme";
 
-type MediaPickerModalProps = {
+export interface MediaPickerModalProps {
     fileRef: React.MutableRefObject<HTMLInputElement | null>;
     onSendMedia: (file: File) => void;
-};
+}
 
 export const createObjectURL = (file: File) => (window.URL || window.webkitURL).createObjectURL(file);
 

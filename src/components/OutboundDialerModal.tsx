@@ -13,13 +13,17 @@ import { DialpadIcon } from "@twilio-paste/icons/esm/DialpadIcon";
 import { OutboundDialer } from "./OutboundDialer";
 import { Theme } from "@twilio-paste/theme";
 
-export function OutboundDialerModal({ client }: { client: Client }) {
-    const state = useSideModalState();
+export interface OutboundDialerModalProps {
+    client: Client;
+}
+
+export function OutboundDialerModal({ client }: OutboundDialerModalProps) {
+    const state = useSideModalState({});
     return (
         <Theme.Provider theme="dark">
             <SideModalContainer state={state}>
                 <SideModalButton variant="secondary_icon">
-                    <DialpadIcon decorative={false} title="Open Dialer" color={"colorTextInverse"} />
+                    <DialpadIcon decorative={false} title="Open Dialer" color={"colorTextInverse"} size="sizeIcon60" />
                 </SideModalButton>
                 <SideModal aria-label="Outbound Dialer Modal">
                     <SideModalHeader>
